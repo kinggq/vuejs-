@@ -3,17 +3,12 @@ function createRenderer(options) {
     const {
         createElement,
         setElementText,
-        insert
+        insert,
+        patchProps
     } = options;
 
     function mountElement(vnode, container) {
         const el = createElement(vnode.type);
-
-        if (vnode.props) {
-            for (const key in vnode.props) {
-                el[key] = vnode.props[key];
-            }
-        }
 
         if (typeof vnode.children === 'string') {
             setElementText(el, vnode.children);
@@ -21,7 +16,13 @@ function createRenderer(options) {
             vnode.children.forEach(child => {
                 patch(null, child, el);
             });
-            
+
+        }
+
+        if (vnode.props) {
+            for (const key in vnode.props) {
+                patchProps(el, key, null, vnode.props[key])
+            }
         }
         insert(el, container);
     }
@@ -37,7 +38,7 @@ function createRenderer(options) {
 
     function render(vnode, container) {
         console.log(vnode);
-        if (vnode){
+        if (vnode) {
             patch(container._vnode, vnode, container);
         } else {
             if (container._vnode) {
