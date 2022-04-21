@@ -43,7 +43,8 @@ const renderer = createRenderer({
             if (nextValue) {
                 if (!invoker) {
                     invoker = el._vei[key] = (e) => {
-                        console.log('11111', invoker.value);
+                        // 如果事件发生的时间早于事件处理函数绑定的时间，则不执行事件处理函数
+                        if (e.timeStamp < invoker.attached) return;
                         if (Array.isArray(invoker.value)) {
                             invoker.value.forEach(fn => fn(e));
                         } else {
@@ -51,7 +52,8 @@ const renderer = createRenderer({
                         }
                     }
                     invoker.value = nextValue;
-                    
+                    // 添加 invoker.attached 属性，存储事件处理函数绑定的时间
+                    invoker.attached = performance.now();
                     el.addEventListener(name, invoker);
                 } else {
                     invoker.value = nextValue;
