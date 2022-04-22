@@ -1,17 +1,41 @@
 const vnode = {
-    type: 'h1',
+    type: 'ul',
     props: {
         id: 'hh'
     },
     children: [
         {
-            type: 'button',
-            children: '提交',
-            props: {
-                onClick:[ () => {
-                    console.log(11111);
-                }, () => { console.log(2222)}]
-            }
+            type: Fragment,
+            children: [
+                {
+                    type: 'li',
+                    children: 'li 1',
+                    props: {
+                        onClick: () => {
+                            console.log(11111);
+                        }
+                    }
+                },
+                {
+                    type: 'li',
+                    children: 'li 2',
+                    props: {
+                        onClick: () => {
+                            console.log(22222);
+                        }
+                    }
+                },
+                {
+                    type: 'li',
+                    children: 'li 3',
+                    props: {
+                        onClick: () => {
+                            console.log(33333);
+                        }
+                    }
+                },
+            ],
+            
         }
     ]
 }

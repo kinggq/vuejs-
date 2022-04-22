@@ -1,4 +1,7 @@
 // 渲染器函数的实现
+const Text = Symbol();
+const Comment = Symbol();
+const Fragment = Symbol();
 function createRenderer(options) {
     const {
         createElement,
@@ -10,9 +13,7 @@ function createRenderer(options) {
         createComment,
         setComment
     } = options;
-    const Text = Symbol();
-    const Comment = Symbol();
-
+    
     function mountElement(vnode, container) {
         const el = vnode.el = createElement(vnode.type);
 
@@ -50,7 +51,7 @@ function createRenderer(options) {
             }
         } else if (typeof type === 'object') {
             // 如果 n2 的 type 是个对象，那就说明是个组件
-        } else if (typeof type === Text) {
+        } else if (type === Text) {
             // 文本节点
             if (!n1) {
                 const el = n2.el = createText(n2.children);
@@ -61,7 +62,7 @@ function createRenderer(options) {
                     setText(el, n2.children);
                 }
             }
-        } else if (typeof type === Comment) {
+        } else if (type === Comment) {
             // 注释节点
             if (!n1) {
                 const el = n2.el = createComment(n2.children);
@@ -71,6 +72,12 @@ function createRenderer(options) {
                 if (n2.children !== n1.children) {
                     setComment(el, n2.children);
                 }
+            }
+        } else if (type === Fragment) {
+            if (!n1) {
+                n2.children.forEach(c => patch(null, c, container));
+            } else {
+                patchChildren(n1, n2, container);
             }
         }
     }
@@ -90,6 +97,11 @@ function createRenderer(options) {
     }
 
     function unmount(vnode) {
+        // 在卸载时如果 vnode 类型为 Fragment，则需要卸载其 children
+        if (vnode.type === Fragment) {
+            vnode.children.forEach(c => unmount(c));
+            return;
+        }
         const parent = vnode.el.parentNode;
         if (parent) parent.removeChild(vnode.el);
     }
