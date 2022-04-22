@@ -1,6 +1,4 @@
 // 渲染器函数的实现
-const Text = Symbol();
-const Comment = Symbol();
 function createRenderer(options) {
     const {
         createElement,
@@ -12,7 +10,9 @@ function createRenderer(options) {
         createComment,
         setComment
     } = options;
-    
+    const Text = Symbol();
+    const Comment = Symbol();
+
     function mountElement(vnode, container) {
         const el = vnode.el = createElement(vnode.type);
 
@@ -40,7 +40,6 @@ function createRenderer(options) {
             n1 = null;
         }
         const { type } = n2;
-        
         if (typeof type === 'string') {
             if (!n1) {
                 // 如果 n1 不存在表示意味着挂载，调用 mountElement 函数完成挂载
@@ -51,7 +50,7 @@ function createRenderer(options) {
             }
         } else if (typeof type === 'object') {
             // 如果 n2 的 type 是个对象，那就说明是个组件
-        } else if (type === Text) {
+        } else if (typeof type === Text) {
             // 文本节点
             if (!n1) {
                 const el = n2.el = createText(n2.children);
@@ -62,7 +61,7 @@ function createRenderer(options) {
                     setText(el, n2.children);
                 }
             }
-        } else if (type === Comment) {
+        } else if (typeof type === Comment) {
             // 注释节点
             if (!n1) {
                 const el = n2.el = createComment(n2.children);

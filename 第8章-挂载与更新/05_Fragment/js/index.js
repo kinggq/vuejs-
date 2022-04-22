@@ -1,14 +1,9 @@
-console.log(Text)
 const vnode = {
     type: 'h1',
     props: {
         id: 'hh'
     },
     children: [
-        {
-            type: Comment,
-            children: '我是注释节点'
-        },
         {
             type: 'button',
             children: '提交',
@@ -17,10 +12,6 @@ const vnode = {
                     console.log(11111);
                 }, () => { console.log(2222)}]
             }
-        },
-        {
-            type: Text,
-            children: '我是文本节点',
         }
     ]
 }
