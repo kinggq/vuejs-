@@ -1,19 +1,19 @@
 const oldVnode = {
     type: 'div',
     children: [
-        { type: 'p', children: '1', key: 1 },
-        { type: 'p', children: '2', key: 2 },
-        { type: 'p', children: 'hello', key: 3 },
+        { type: 'p', children: '1', key: 1, props: { key: 1 } },
+        { type: 'p', children: '2', key: 2, props: { key: 2 } },
+        { type: 'p', children: 'hello', key: 3, props: { key: 3 } },
     ]
 }
 
 const newVnode = {
     type: 'div',
     children: [
-        { type: 'p', children: 'world', key: 3 },
-        { type: 'p', children: '1', key: 1 },
-        { type: 'p', children: '4', key: 4 },
-        { type: 'p', children: '2', key: 2 },
+        { type: 'p', children: 'world', key: 3, props: { key: 3 } },
+        { type: 'p', children: '1', key: 1, props: { key: 1 } },
+        { type: 'p', children: '4', key: 4, props: { key: 4 } },
+        { type: 'p', children: '2', key: 2, props: { key: 2 } },
         
     ]
 }

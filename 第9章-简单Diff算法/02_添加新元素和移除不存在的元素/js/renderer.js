@@ -13,7 +13,7 @@ function createRenderer(options) {
         createComment,
         setComment
     } = options;
-    
+
     function mountElement(vnode, container, anchor) {
         const el = vnode.el = createElement(vnode.type);
 
@@ -89,7 +89,7 @@ function createRenderer(options) {
             if (container._vnode) {
                 // document.body.innerHTML = '';
                 unmount(container._vnode);
-                
+
             }
         }
         container._vnode = vnode;
@@ -104,7 +104,7 @@ function createRenderer(options) {
         const parent = vnode.el.parentNode;
         if (parent) parent.removeChild(vnode.el);
     }
-    
+
     function patchElement(n1, n2) {
         const el = n2.el = n1.el;
         const oldProps = n1.props;
@@ -168,7 +168,6 @@ function createRenderer(options) {
                     for (j; j < oldChildren.length; j++) {
                         const oldVNode = oldChildren[j];
                         if (oldVNode.key === newVNode.key) {
-                            debugger
                             find = true;
                             patch(oldVNode, newVNode, container);
                             if (j < lastIndex) {
@@ -186,27 +185,28 @@ function createRenderer(options) {
                             }
                             break;
                         }
-                        // 代码执行到这里 find 仍然为 false 
-                        // 说明当前 newVNode 没有在旧的一组节点中找到可复用的节点
-                        // 也就是说当前 newVNode 是新增节点，需要挂载
-                        if (!find) {
-                            const preVNode = newChildren[i - 1];
-                            let anchor = null;
-                            if (preVNode) {
-                                anchor = preVNode.el.nextSibling;
-                            } else {
-                                anchor = container.firstChild;
-                            }
 
-                            patch(null, newVNode, container, anchor);
-                        } 
+                    }
+                    // 代码执行到这里 find 仍然为 false 
+                    // 说明当前 newVNode 没有在旧的一组节点中找到可复用的节点
+                    // 也就是说当前 newVNode 是新增节点，需要挂载
+                    if (!find) {
+                        const preVNode = newChildren[i - 1];
+                        let anchor = null;
+                        if (preVNode) {
+                            anchor = preVNode.el.nextSibling;
+                        } else {
+                            anchor = container.firstChild;
+                        }
+
+                        patch(null, newVNode, container, anchor);
                     }
                 }
             } else {
                 setElementText(container, '');
                 n2.children.forEach(c => patch(null, c, container));
             }
-            
+
         } else {
             // 代码运行到这里，说明新子节点不存在
             if (Array.isArray(n1.children)) {
