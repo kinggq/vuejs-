@@ -202,6 +202,17 @@ function createRenderer(options) {
                         patch(null, newVNode, container, anchor);
                     }
                 }
+
+                // 移除不存在的元素
+                for (let i = 0; i < oldChildren.length; i++) {
+                    const oldVNode = oldChildren[i];
+                    const has = newChildren.find(
+                        vnode => vnode.key === oldVNode.key
+                    );
+                    if (!has) {
+                        unmount(oldVNode);
+                    }
+                }
             } else {
                 setElementText(container, '');
                 n2.children.forEach(c => patch(null, c, container));

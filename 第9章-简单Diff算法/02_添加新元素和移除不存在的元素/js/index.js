@@ -4,6 +4,7 @@ const oldVnode = {
         { type: 'p', children: '1', key: 1, props: { key: 1 } },
         { type: 'p', children: '2', key: 2, props: { key: 2 } },
         { type: 'p', children: 'hello', key: 3, props: { key: 3 } },
+        { type: 'p', children: '666', key: 6, props: { key: 6 } },
     ]
 }
 
