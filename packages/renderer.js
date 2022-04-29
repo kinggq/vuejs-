@@ -51,6 +51,11 @@ function createRenderer(options) {
             }
         } else if (typeof type === 'object') {
             // 如果 n2 的 type 是个对象，那就说明是个组件
+            if (!n1) {
+                mountComponent(n2, container, anchor);
+            } else {
+                patchComponent(n1, n2, anchor);
+            }
         } else if (type === Text) {
             // 文本节点
             if (!n1) {
@@ -315,6 +320,13 @@ function createRenderer(options) {
             v = p[v]
         }
         return result
+    }
+
+    function mountComponent(vnode, container, anchor) {
+        const componentOptions = vnode.type
+        const { render } = componentOptions
+        const subTree = render();
+        patch(null, subTree, container, anchor);
     }
 
     return {
