@@ -1,19 +1,21 @@
-const obj = { foo: 1, bar: 5, a: { b: 2 } }
+
 // 用全局变量存储被注册的副作用函数
 let activeEffect
 const bucked = new WeakMap()
-const reactive = new Proxy(obj, {
-    // 拦截读取操作
-    get(target, key) {
-        track(target, key)
-        return target[key]
-    },
-    // 拦截设置操作
-    set(target, key, newValue) {
-        target[key] = newValue
-        trigger(target, key, newValue)
-    }
-})
+function reactive(obj) {
+    return new Proxy(obj, {
+        // 拦截读取操作
+        get(target, key) {
+            track(target, key)
+            return target[key]
+        },
+        // 拦截设置操作
+        set(target, key, newValue) {
+            target[key] = newValue
+            trigger(target, key, newValue)
+        }
+    })
+}
 
 function track(target, key) {
     // 没有 activeEffect 直接 return
@@ -197,12 +199,3 @@ function effect(fn, options={}) {
     }
     return effectFn
 }
-
-let ret
-watch(() => reactive.foo, (oldVal, newVal) => {
-
-    console.log('数据发生变化了, old:', oldVal, ' new:', newVal)
-},
-{
-    immediate: true,
-})
