@@ -324,9 +324,88 @@ function createRenderer(options) {
 
     function mountComponent(vnode, container, anchor) {
         const componentOptions = vnode.type
-        const { render } = componentOptions
-        const subTree = render();
-        patch(null, subTree, container, anchor);
+        const { render, data, props: propsOptions, beforeCreate, created, beforeMount, mounted, beforeUpdate, updated } = componentOptions
+
+        // 在这里调用 beforeCreate
+        beforeCreate && beforeCreate()
+        
+        // 调用 data 函数得到原始数据，并调用 reactive 函数将其包装为响应式数据
+        const state = reactive(data())
+
+        // 调用 resolveProps 函数解析出最终的 props 和 attrs 数据
+        const [props, attrs] = resolveProps(propsOptions, vnode.props)
+        
+        // 组件的实例与组件的声明周期
+        // 定义一个组件实例，一个组件实例本质上就是一个对象，它包含与组件有关的状态信息
+        const instance = {
+            state,  // 组件的自身状态数据
+            isMounted: false,   // 组件是否已经挂载，初始值为 false
+            subTree: null,
+            // 将解析出的 props 数据包装为 shallowReactive 并定义到组件实例上，暂用 reactive 替代
+            props: reactive(props),
+        }
+        // 在这里调用 created
+        created && created.call(state)
+
+        // 将组件实例设置到 vnode 上，用于后续更新
+        vnode.component = instance
+        // 调用 render 函数时将其 this 设置为 state
+        // 从 render 函数内部可以通过 this 访问组件自身状态数据
+        // 将组件的 render 调用函数包装到 effect 内
+        effect(() => {
+            const subTree = render.call(state, state);
+            if (!instance.isMounted) {
+                // 在这里调用 beforeMount
+                beforeMount && beforeMount.call(state)
+                patch(null, subTree, container, anchor);
+                // 将组件实例的 isMounted 设置为 true，当更新是不在执行挂载逻辑
+                instance.isMounted = true
+                // 在这里调用 mounted
+                mounted && mounted.call(state)
+            } else {
+                // 在这里调用 beforeUpdate
+                beforeUpdate && beforeUpdate.call(state)
+                patch(instance.subTree, subTree, container, anchor);
+                // 在这里调用 updated
+                updated && updated.call(state)
+            }
+            // 更新组件实例的子树
+            instance.subTree = subTree
+        }, {
+            scheduler: jobQueue
+        })
+        
+    }
+
+    function resolveProps(options, propsData) {
+        const props = {}
+        const attrs = {}
+        for (const key in propsData) {
+            if (key in options) {
+                props[key] = propsData[key]
+            } else {
+                attrs[key] = propsData[key]
+            }
+        }
+        return [props, attrs]
+    }
+
+    const queue = new Set()
+    let isFlushing = false
+    const p = Promise.resolve()
+    function jobQueue(job) {
+        queue.add(job)
+        if (!isFlushing) {
+            isFlushing = true
+            p.then(() => {
+                try {
+                    queue.forEach(fn => fn())
+                } finally {
+                    isFlushing = false
+                    queue.length = 0
+                }
+            })
+        }
     }
 
     return {

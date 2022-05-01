@@ -9,15 +9,45 @@
 <body>
     <div id="app"></div>
 </body>
+<script src="../packages/reactive.js"></script>
 <script src="../packages/renderer.js"></script>
 <script>
 
 const MyComponent = {
     name: 'MyComponent',
+    data() {
+        return {
+            foo: 'hello'
+        }
+    },
+    beforeCreate() {
+        console.log('beforeCreate', this.foo)
+    }, 
+    created() {
+        console.log('created', this.foo)
+    }, 
+    beforeMount() {
+        console.log('beforeMount', this.foo)
+    }, 
+    mounted() {
+        console.log('mounted', this.foo)
+    }, 
+    beforeUpdate() {
+        console.log('beforeUpdate', this.foo)
+    }, 
+    updated() {
+        console.log('updated', this.foo)
+    },
+ 
     render() {
         return {
             type: 'div',
-            children: '我是文本节点'
+            children: this.foo,
+            props: {
+                onClick: () => {
+                    this.foo += 1
+                }
+            }
         }
     }
 }
