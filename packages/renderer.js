@@ -322,6 +322,37 @@ function createRenderer(options) {
         return result
     }
 
+    function patchComponent(n1, n2, anchor) {
+        const instance = (n2.component = n1.component)
+        const props = instance
+        if (hasPropsChanged(n1.props, n2.props)) {
+            // 调用 resolveProps 函数重新获取 props 数据
+            const [ nextProps ] = resolveProps(n2.type.props, n2.props)
+            // 更新 props
+            for (const key in nextProps) {
+                props[key] = nextProps[key]
+                
+            }
+            // 删除不存在的 props
+            for (const k in props) {
+                if (!(k in nextProps)) delete props[k]
+            }
+        }
+
+    }
+
+    function hasPropsChanged(prevProps, nextProps) {
+        const nextKeys = Object.keys(nextProps)
+        if (nextKeys.length !== Object.keys(prevProps).length) {
+            return true
+        }
+        for (let i = 0; i < nextKeys.length; i++){
+            const key = nextKeys[i];
+            if (nextProps[key] !== prevProps[key]) return true
+        }
+        return false
+    }
+
     function mountComponent(vnode, container, anchor) {
         const componentOptions = vnode.type
         const { render, data, props: propsOptions, beforeCreate, created, beforeMount, mounted, beforeUpdate, updated } = componentOptions
@@ -344,30 +375,57 @@ function createRenderer(options) {
             // 将解析出的 props 数据包装为 shallowReactive 并定义到组件实例上，暂用 reactive 替代
             props: reactive(props),
         }
-        // 在这里调用 created
-        created && created.call(state)
-
+        
         // 将组件实例设置到 vnode 上，用于后续更新
         vnode.component = instance
+
+        debugger
+        const renderContext = new Proxy(instance, {
+            get(t, k, r) {
+                console.log(t);
+                
+                const { state, props } = t
+                // console.log( state, props)
+                if (state && k in state) {
+                    return state[k]
+                } else if (k in props) {
+                    return props[k]
+                } else {
+                    console.error('不存在')
+                }
+            },
+            set(t, k, v, r) {
+                const { state, props } = t
+                if (state && k in state) {
+                    state[k] = v
+                } else if (k in props) {
+                    props[k] = v
+                } else {
+                    console.log('不存在')
+                }
+            }
+        })
+        // 在这里调用 created
+        created && created.call(renderContext)
         // 调用 render 函数时将其 this 设置为 state
         // 从 render 函数内部可以通过 this 访问组件自身状态数据
         // 将组件的 render 调用函数包装到 effect 内
         effect(() => {
-            const subTree = render.call(state, state);
+            const subTree = render.call(renderContext, renderContext);
             if (!instance.isMounted) {
                 // 在这里调用 beforeMount
-                beforeMount && beforeMount.call(state)
+                beforeMount && beforeMount.call(renderContext)
                 patch(null, subTree, container, anchor);
                 // 将组件实例的 isMounted 设置为 true，当更新是不在执行挂载逻辑
                 instance.isMounted = true
                 // 在这里调用 mounted
-                mounted && mounted.call(state)
+                mounted && mounted.call(renderContext)
             } else {
                 // 在这里调用 beforeUpdate
-                beforeUpdate && beforeUpdate.call(state)
+                beforeUpdate && beforeUpdate.call(renderContext)
                 patch(instance.subTree, subTree, container, anchor);
                 // 在这里调用 updated
-                updated && updated.call(state)
+                updated && updated.call(renderContext)
             }
             // 更新组件实例的子树
             instance.subTree = subTree

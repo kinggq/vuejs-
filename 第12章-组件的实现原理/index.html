@@ -15,12 +15,15 @@
 
 const MyComponent = {
     name: 'MyComponent',
+    props: {
+        title: ''
+    },
     data() {
         return {
             foo: 'hello'
         }
     },
-    beforeCreate() {
+   /*  beforeCreate() {
         console.log('beforeCreate', this.foo)
     }, 
     created() {
@@ -37,15 +40,15 @@ const MyComponent = {
     }, 
     updated() {
         console.log('updated', this.foo)
-    },
+    }, */
  
     render() {
         return {
             type: 'div',
-            children: this.foo,
+            children: this.title,
             props: {
                 onClick: () => {
-                    this.foo += 1
+                    console.log(this.title)
                 }
             }
         }
@@ -53,9 +56,23 @@ const MyComponent = {
 }
 
 const ComponentNode = {
-    type: MyComponent
+    type: MyComponent,
+    props: {
+        title: 'A big title'
+    }
+}
+
+const newComponentNode = {
+    type: MyComponent,
+    props: {
+        title: 'hello world'
+    }
 }
 
 renderer.render(ComponentNode, document.getElementById('app'))
+
+// setTimeout(() => {
+//     renderer.render(newComponentNode, document.getElementById('app'))
+// }, 1000)
 </script>
 </html>
