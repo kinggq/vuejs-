@@ -13,46 +13,27 @@
 <script src="../packages/renderer.js"></script>
 <script>
 
-const MyComponent = {
-    name: 'MyComponent',
-    props: {
-        title: ''
-    },
-    data() {
+// 测试 setup 函数
+const com = {
+    props: { title: '' },
+    setup(props, setupContext) {
+        
+        const state = reactive({
+            text: 'hello world'
+        })
+        console.log('props:', props)
+        console.log('setupContext:', setupContext)
         return {
-            foo: 'hello'
+            state
         }
     },
-   /*  beforeCreate() {
-        console.log('beforeCreate', this.foo)
-    }, 
-    created() {
-        console.log('created', this.foo)
-    }, 
-    beforeMount() {
-        console.log('beforeMount', this.foo)
-    }, 
-    mounted() {
-        console.log('mounted', this.foo)
-    }, 
-    beforeUpdate() {
-        console.log('beforeUpdate', this.foo)
-    }, 
-    updated() {
-        console.log('updated', this.foo)
-    }, */
- 
     render() {
         return {
-            type: 'div',
-            children: `
-                    title:${this.title} <br/>
-                    foo: ${this.foo}`,
+            type: 'h1',
+            children: this.state.text,
             props: {
-                onClick: () => {
-                    console.log(this.title)
-                    this.foo += 1
-                    this.title += 1
+                onClick() {
+                    this.state.text += 1
                 }
             }
         }
@@ -60,23 +41,76 @@ const MyComponent = {
 }
 
 const ComponentNode = {
-    type: MyComponent,
+    type: com,
     props: {
         title: 'A big title'
     }
 }
-
-const newComponentNode = {
-    type: MyComponent,
-    props: {
-        title: 'hello world'
-    }
-}
-
 renderer.render(ComponentNode, document.getElementById('app'))
+// const MyComponent = {
+//     name: 'MyComponent',
+//     props: {
+//         title: ''
+//     },
+//     data() {
+//         return {
+//             foo: 'hello'
+//         }
+//     },
+//    /*  beforeCreate() {
+//         console.log('beforeCreate', this.foo)
+//     }, 
+//     created() {
+//         console.log('created', this.foo)
+//     }, 
+//     beforeMount() {
+//         console.log('beforeMount', this.foo)
+//     }, 
+//     mounted() {
+//         console.log('mounted', this.foo)
+//     }, 
+//     beforeUpdate() {
+//         console.log('beforeUpdate', this.foo)
+//     }, 
+//     updated() {
+//         console.log('updated', this.foo)
+//     }, */
+ 
+//     render() {
+//         return {
+//             type: 'div',
+//             children: `
+//                     title:${this.title} <br/>
+//                     foo: ${this.foo}`,
+//             props: {
+//                 onClick: () => {
+//                     console.log(this.title)
+//                     this.foo += 1
+//                     this.title += 1
+//                 }
+//             }
+//         }
+//     }
+// }
 
-setTimeout(() => {
-    renderer.render(newComponentNode, document.getElementById('app'))
-}, 1000)
+// const ComponentNode = {
+//     type: MyComponent,
+//     props: {
+//         title: 'A big title'
+//     }
+// }
+
+// const newComponentNode = {
+//     type: MyComponent,
+//     props: {
+//         title: 'hello world'
+//     }
+// }
+
+// renderer.render(ComponentNode, document.getElementById('app'))
+
+// setTimeout(() => {
+//     renderer.render(newComponentNode, document.getElementById('app'))
+// }, 1000)
 </script>
 </html>

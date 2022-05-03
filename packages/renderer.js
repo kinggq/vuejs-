@@ -355,13 +355,13 @@ function createRenderer(options) {
 
     function mountComponent(vnode, container, anchor) {
         const componentOptions = vnode.type
-        const { render, data, props: propsOptions, beforeCreate, created, beforeMount, mounted, beforeUpdate, updated } = componentOptions
+        const { render, data, setup, props: propsOptions, beforeCreate, created, beforeMount, mounted, beforeUpdate, updated } = componentOptions
 
         // 在这里调用 beforeCreate
         beforeCreate && beforeCreate()
         
         // 调用 data 函数得到原始数据，并调用 reactive 函数将其包装为响应式数据
-        const state = reactive(data())
+        const state = data ? reactive(data()) : null
 
         // 调用 resolveProps 函数解析出最终的 props 和 attrs 数据
         const [props, attrs] = resolveProps(propsOptions, vnode.props)
@@ -374,6 +374,18 @@ function createRenderer(options) {
             subTree: null,
             // 将解析出的 props 数据包装为 shallowReactive 并定义到组件实例上，暂用 reactive 替代
             props: reactive(props),
+        }
+        // setup 的第二个参数
+        const setupContext = { attrs }
+        const setupResult = setup(instance.props, setupContext)
+        // 用来存储 setup 返回的数据
+        let setupState = null
+        if (typeof setupResult === 'function') {
+            // 报告冲突
+            if (render) console.error('setup 函数返回渲染函数，render选项将被忽略')
+            render = setupResult
+        } else {
+            setupState = setupResult
         }
         
         // 将组件实例设置到 vnode 上，用于后续更新
@@ -388,6 +400,9 @@ function createRenderer(options) {
                     return state[k]
                 } else if (k in props) {
                     return props[k]
+                } else if (setupState && k in setupState) {
+                    // 渲染上下文需要对 setup 的支持
+                    return setupState[k]
                 } else {
                     console.error('不存在')
                 }
@@ -398,6 +413,8 @@ function createRenderer(options) {
                     state[k] = v
                 } else if (k in props) {
                     props[k] = v
+                } else if (setupResult && k in setupResult) {
+                    setupResult[k] = v
                 } else {
                     console.log('不存在')
                 }
