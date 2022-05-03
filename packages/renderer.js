@@ -356,7 +356,6 @@ function createRenderer(options) {
     function mountComponent(vnode, container, anchor) {
         const componentOptions = vnode.type
         const { render, data, setup, props: propsOptions, beforeCreate, created, beforeMount, mounted, beforeUpdate, updated } = componentOptions
-
         // 在这里调用 beforeCreate
         beforeCreate && beforeCreate()
         
@@ -366,6 +365,7 @@ function createRenderer(options) {
         // 调用 resolveProps 函数解析出最终的 props 和 attrs 数据
         const [props, attrs] = resolveProps(propsOptions, vnode.props)
         
+        const slots = vnode.children || {}
         // 组件的实例与组件的声明周期
         // 定义一个组件实例，一个组件实例本质上就是一个对象，它包含与组件有关的状态信息
         const instance = {
@@ -374,6 +374,7 @@ function createRenderer(options) {
             subTree: null,
             // 将解析出的 props 数据包装为 shallowReactive 并定义到组件实例上，暂用 reactive 替代
             props: reactive(props),
+            slots
         }
         
         function emit(event, ...payload) {
@@ -388,8 +389,8 @@ function createRenderer(options) {
         }
 
         // setup 的第二个参数
-        const setupContext = { attrs, emit }
-        const setupResult = setup(instance.props, setupContext)
+        const setupContext = { attrs, emit, slots }
+        const setupResult = setup && setup(instance.props, setupContext)
         // 用来存储 setup 返回的数据
         let setupState = null
         if (typeof setupResult === 'function') {
@@ -406,8 +407,8 @@ function createRenderer(options) {
         // debugger
         const renderContext = new Proxy(instance, {
             get(t, k, r) {
-                const { state, props } = t
-                // console.log( state, props)
+                const { state, props, slots } = t
+                if (k === '$slots') return slots
                 if (state && k in state) {
                     return state[k]
                 } else if (k in props) {
@@ -432,6 +433,7 @@ function createRenderer(options) {
                 }
             }
         })
+        
         // 在这里调用 created
         created && created.call(renderContext)
         // 调用 render 函数时将其 this 设置为 state
