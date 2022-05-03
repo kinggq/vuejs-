@@ -375,8 +375,20 @@ function createRenderer(options) {
             // 将解析出的 props 数据包装为 shallowReactive 并定义到组件实例上，暂用 reactive 替代
             props: reactive(props),
         }
+        
+        function emit(event, ...payload) {
+            const eventName = `on${event[0].toUpperCase() + event.slice(1)}`
+            console.log(eventName)
+            const handler = instance.props[eventName]
+            if (handler) {
+                handler(...payload)
+            } else {
+                console.error('事件不存在')
+            }
+        }
+
         // setup 的第二个参数
-        const setupContext = { attrs }
+        const setupContext = { attrs, emit }
         const setupResult = setup(instance.props, setupContext)
         // 用来存储 setup 返回的数据
         let setupState = null
@@ -454,7 +466,7 @@ function createRenderer(options) {
         const props = {}
         const attrs = {}
         for (const key in propsData) {
-            if (key in options) {
+            if (key in options || key.startsWith('on')) {
                 props[key] = propsData[key]
             } else {
                 attrs[key] = propsData[key]

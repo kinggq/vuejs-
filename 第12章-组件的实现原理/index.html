@@ -21,6 +21,8 @@ const com = {
         const state = reactive({
             text: 'hello world'
         })
+
+        setupContext.emit('change', 'hello emit')
         console.log('props:', props)
         console.log('setupContext:', setupContext)
         return {
@@ -43,7 +45,10 @@ const com = {
 const ComponentNode = {
     type: com,
     props: {
-        title: 'A big title'
+        title: 'A big title',
+        onChange: (props) => {
+            console.log('emit事件参数：' , props)
+        }
     }
 }
 renderer.render(ComponentNode, document.getElementById('app'))
