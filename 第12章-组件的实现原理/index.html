@@ -45,10 +45,14 @@ const MyComponent = {
     render() {
         return {
             type: 'div',
-            children: this.title,
+            children: `
+                    title:${this.title} <br/>
+                    foo: ${this.foo}`,
             props: {
                 onClick: () => {
                     console.log(this.title)
+                    this.foo += 1
+                    this.title += 1
                 }
             }
         }
@@ -71,8 +75,8 @@ const newComponentNode = {
 
 renderer.render(ComponentNode, document.getElementById('app'))
 
-// setTimeout(() => {
-//     renderer.render(newComponentNode, document.getElementById('app'))
-// }, 1000)
+setTimeout(() => {
+    renderer.render(newComponentNode, document.getElementById('app'))
+}, 1000)
 </script>
 </html>

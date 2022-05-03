@@ -324,7 +324,7 @@ function createRenderer(options) {
 
     function patchComponent(n1, n2, anchor) {
         const instance = (n2.component = n1.component)
-        const props = instance
+        const { props } = instance
         if (hasPropsChanged(n1.props, n2.props)) {
             // 调用 resolveProps 函数重新获取 props 数据
             const [ nextProps ] = resolveProps(n2.type.props, n2.props)
@@ -379,11 +379,9 @@ function createRenderer(options) {
         // 将组件实例设置到 vnode 上，用于后续更新
         vnode.component = instance
 
-        debugger
+        // debugger
         const renderContext = new Proxy(instance, {
             get(t, k, r) {
-                console.log(t);
-                
                 const { state, props } = t
                 // console.log( state, props)
                 if (state && k in state) {
