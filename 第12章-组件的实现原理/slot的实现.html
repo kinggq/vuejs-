@@ -3,6 +3,11 @@
 <script src="../packages/renderer.js"></script>
 <script>
 const myComponent = {
+    setup() {
+        onMounted(() => {
+            console.log('myComponent onMounted')  
+        })
+    },
     render() {
         return {
             type: 'div',

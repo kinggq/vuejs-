@@ -2,6 +2,19 @@
 const Text = Symbol();
 const Comment = Symbol();
 const Fragment = Symbol();
+// 全局变量，存储当前正在初始化的组件实例
+let currentInstance = null
+// 设置组件实例
+function setCurrentInstance(instance) {
+    currentInstance = instance
+}
+function onMounted(fn) {
+    if (currentInstance) {
+        currentInstance.mounted.push(fn)
+    } else {
+        console.error('onMounted 函数只能在 setup 中调用')
+    }
+}
 function createRenderer(options) {
     const {
         createElement,
@@ -353,6 +366,7 @@ function createRenderer(options) {
         return false
     }
 
+    
     function mountComponent(vnode, container, anchor) {
         const componentOptions = vnode.type
         const { render, data, setup, props: propsOptions, beforeCreate, created, beforeMount, mounted, beforeUpdate, updated } = componentOptions
@@ -374,7 +388,8 @@ function createRenderer(options) {
             subTree: null,
             // 将解析出的 props 数据包装为 shallowReactive 并定义到组件实例上，暂用 reactive 替代
             props: reactive(props),
-            slots
+            slots,
+            mounted: []
         }
         
         function emit(event, ...payload) {
@@ -390,7 +405,11 @@ function createRenderer(options) {
 
         // setup 的第二个参数
         const setupContext = { attrs, emit, slots }
+        // 在调用 setup 函数之前，设置当前组件实例
+        setCurrentInstance(instance)
         const setupResult = setup && setup(instance.props, setupContext)
+        // 在 setup 函数执行完成之后重置当前实例
+        setCurrentInstance(null)
         // 用来存储 setup 返回的数据
         let setupState = null
         if (typeof setupResult === 'function') {
@@ -449,6 +468,7 @@ function createRenderer(options) {
                 instance.isMounted = true
                 // 在这里调用 mounted
                 mounted && mounted.call(renderContext)
+                instance.mounted && instance.mounted.forEach(hook => hook.call(renderContext))
             } else {
                 // 在这里调用 beforeUpdate
                 beforeUpdate && beforeUpdate.call(renderContext)
