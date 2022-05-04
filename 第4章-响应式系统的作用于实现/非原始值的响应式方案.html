@@ -1,0 +1,15 @@
+<script src="../packages/reactive.js"></script>
+<script>
+const obj = reactive({
+    foo: 2,
+    get bar() {
+        return this.foo
+    }
+})
+
+effect(() => {
+    console.log(obj.bar)
+})
+obj.foo++
+
+</script>

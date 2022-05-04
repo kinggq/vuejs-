@@ -5,9 +5,9 @@ const bucked = new WeakMap()
 function reactive(obj) {
     return new Proxy(obj, {
         // 拦截读取操作
-        get(target, key) {
+        get(target, key, receiver) {
             track(target, key)
-            return target[key]
+            return Reflect.get(target, key, receiver)
         },
         // 拦截设置操作
         set(target, key, newValue) {
