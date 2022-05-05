@@ -2,6 +2,7 @@
 // 用全局变量存储被注册的副作用函数
 let activeEffect
 const bucked = new WeakMap()
+const ITERATE_KEY = Symbol()
 function reactive(obj) {
     return new Proxy(obj, {
         // 拦截读取操作
@@ -10,17 +11,35 @@ function reactive(obj) {
             return Reflect.get(target, key, receiver)
         },
         // 拦截设置操作
-        set(target, key, newValue) {
-            target[key] = newValue
-            trigger(target, key, newValue)
+        set(target, key, newValue, receiver) {
+            // 如果属性不存在则说明在添加属性，否则是设置已有的属性
+            const type = Object.prototype.hasOwnProperty.call(target, key) ? 'SET' : 'ADD'
+            // 设置属性值
+            const res = Reflect.set(target, key, newValue, receiver)
+            // 将 type 作为第三个参数传给 trigger
+            trigger(target, key, type)
+            return res
         },
         deleteProperty(target, key) {
-            return Reflect.deleteProperty(target, key)
+            // 检查被操作的属性是否是对象自己的属性
+            const hadKey = Object.prototype.hasOwnProperty.call(target, key)
+            // 使用 Reflect.deleteProperty 完成属性的删除
+            const res = Reflect.deleteProperty(target, key)
+            if (res && hadKey) {
+                // 只有当被删除的属性是对象自己的属性并且删除成功时，才触发更新
+                trigger(target, key, 'DELETE')
+            }
+            return res
         },
         // 通过 has 拦截函数实现对 in 操作符的代理
         has(target, key) {
             track(target, key)
             return Reflect.has(target, key)
+        },
+        // 拦截 for in
+        ownKeys(target) {
+            track(target, ITERATE_KEY)
+            return Reflect.ownKeys(target)
         }
     })
 }
@@ -41,10 +60,11 @@ function track(target, key) {
     activeEffect.deps.push(deps)
 }
 
-function trigger(target, key, newValue) {
+function trigger(target, key, type) {
     const depsMap = bucked.get(target)
     if (!depsMap) return
     const effects = depsMap.get(key)
+    const iterateEffects = depsMap.get(ITERATE_KEY)
     // 最后重置 effectFn 的 deps 数组
     const effectToRun = new Set()
     effects && effects.forEach(fn => {
@@ -52,13 +72,23 @@ function trigger(target, key, newValue) {
             effectToRun.add(fn)
         }
     })
-    effectToRun.forEach(fn => {
+    // 只有当 type 是 ADD 时才触发 ITERATE_KEY 相关的副作用函数
+    if (type === 'ADD' || type === 'DELETE') {
+        // 将与 ITERATE_KEY 相关的副作用函数也添加到 effectToRun，处理 for in 相关
+        iterateEffects && iterateEffects.forEach(effectFn => {
+            if (effectFn !== activeEffect) {
+                effectToRun.add(effectFn)
+            }
+        })
+    }
+    
+    effectToRun.forEach(effectFn => {
         // 判断副作用函数是否有调度器，有则调用调度器并将副作用函数作为参数传递给调度器
-        if (fn.options.scheduler){
-            fn.options.scheduler(fn)
+        if (effectFn.options.scheduler){
+            effectFn.options.scheduler(effectFn)
         } else {
             // 否则直接执行副作用函数
-            fn()
+            effectFn()
         }
     })
 }
