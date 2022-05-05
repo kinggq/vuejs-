@@ -1,0 +1,13 @@
+<script src="../packages/reactive.js"></script>
+<script>
+
+const obj = reactive({ foo: 1 })
+
+effect(() => {
+    console.log('effect函数执行')
+    'foo' in obj
+})
+
+obj.foo++
+
+</script>

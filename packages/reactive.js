@@ -16,6 +16,11 @@ function reactive(obj) {
         },
         deleteProperty(target, key) {
             return Reflect.deleteProperty(target, key)
+        },
+        // 通过 has 拦截函数实现对 in 操作符的代理
+        has(target, key) {
+            track(target, key)
+            return Reflect.has(target, key)
         }
     })
 }
