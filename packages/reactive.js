@@ -13,6 +13,9 @@ function reactive(obj) {
         set(target, key, newValue) {
             target[key] = newValue
             trigger(target, key, newValue)
+        },
+        deleteProperty(target, key) {
+            return Reflect.deleteProperty(target, key)
         }
     })
 }
