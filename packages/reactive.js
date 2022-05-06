@@ -7,17 +7,28 @@ function reactive(obj) {
     return new Proxy(obj, {
         // 拦截读取操作
         get(target, key, receiver) {
+            // 代理对象可以通过 raw 属性访问原始数据
+            if (key === 'raw') {
+                return target
+            }
             track(target, key)
             return Reflect.get(target, key, receiver)
         },
         // 拦截设置操作
         set(target, key, newValue, receiver) {
+            const oldVal = target[key]
             // 如果属性不存在则说明在添加属性，否则是设置已有的属性
             const type = Object.prototype.hasOwnProperty.call(target, key) ? 'SET' : 'ADD'
             // 设置属性值
             const res = Reflect.set(target, key, newValue, receiver)
-            // 将 type 作为第三个参数传给 trigger
-            trigger(target, key, type)
+            // target === receiver.raw 说明 receiver 就是 target 的代理对象
+            if (target === receiver.raw) {
+                // 比较新值与旧值，只有当他们不全等，并且都不是 NaN 的时候才触发相应
+                if (oldVal !== newValue && (oldVal === oldVal || newValue === newValue)) {
+                    // 将 type 作为第三个参数传给 trigger
+                    trigger(target, key, type)
+                }
+            }
             return res
         },
         deleteProperty(target, key) {

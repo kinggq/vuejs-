@@ -1,20 +1,30 @@
 <script src="../packages/reactive.js"></script>
 <script>
 
-const obj = reactive({ foo: 1, bar: 2 })
+const child = reactive({})
+const parent = reactive({ bar: 1 })
+Object.setPrototypeOf(child, parent)
 
 effect(() => {
-    console.log('effect函数执行')
-    // 'foo' in obj
-    for (const key in obj) {
-        console.log(key)
-    }
+    console.log(child.bar)
 })
 
-obj.foo++
-obj.foo++
-// obj.a = 2 //添加新属性才触发与之相关的副作用函数
-delete obj.foo
-delete obj.bar
+child.bar = 2
+// const obj = reactive({ foo: 1, bar: NaN })
+
+// effect(() => {
+//     console.log('effect函数执行')
+//     console.log(obj.bar)
+//     // 'foo' in obj
+//     // for (const key in obj) {
+//     //     console.log(key)
+//     // }
+// })
+// obj.bar = NaN
+// obj.foo++
+// obj.foo++
+// // obj.a = 2 //添加新属性才触发与之相关的副作用函数
+// delete obj.foo
+// delete obj.bar
 
 </script>
