@@ -3,7 +3,16 @@
 let activeEffect
 const bucked = new WeakMap()
 const ITERATE_KEY = Symbol()
+// 深响应
 function reactive(obj) {
+    return createReactive(obj)
+}
+// 浅响应
+function shallowReactive(obj) {
+    return createReactive(obj, true)
+}
+
+function createReactive(obj, isShallow = false) {
     return new Proxy(obj, {
         // 拦截读取操作
         get(target, key, receiver) {
@@ -11,8 +20,17 @@ function reactive(obj) {
             if (key === 'raw') {
                 return target
             }
+            // 得到原始值结果
+            const res = Reflect.get(target, key, receiver)
             track(target, key)
-            return Reflect.get(target, key, receiver)
+            if (isShallow) {
+                return res
+            }
+            if (typeof res === 'object' && res !== null) {
+                // 调用 reactive 将结果包装成响应式数据返回
+                return reactive(res)
+            }
+            return res
         },
         // 拦截设置操作
         set(target, key, newValue, receiver) {

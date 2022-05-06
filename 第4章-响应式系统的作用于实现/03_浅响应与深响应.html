@@ -1,0 +1,11 @@
+<script src="../packages/reactive.js"></script>
+<script>
+const obj = reactive({ foo: { bar: 1 } })
+const shallowObj = shallowReactive({ foo: { bar: 1 } })
+effect(() => {
+    // console.log(obj.foo.bar)
+    console.log(shallowObj.foo.bar)
+})
+// obj.foo.bar++
+shallowObj.foo.bar++
+</script>
