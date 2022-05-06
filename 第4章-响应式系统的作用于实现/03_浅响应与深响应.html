@@ -1,11 +1,19 @@
 <script src="../packages/reactive.js"></script>
 <script>
-const obj = reactive({ foo: { bar: 1 } })
-const shallowObj = shallowReactive({ foo: { bar: 1 } })
-effect(() => {
-    // console.log(obj.foo.bar)
-    console.log(shallowObj.foo.bar)
-})
-// obj.foo.bar++
-shallowObj.foo.bar++
+    // 浅只读与深只读
+    const obj = shallowReadonly({ foo: 1, bar: { num: 6 } })
+    effect(() => {
+        // console.log(obj.foo)
+        console.log(obj.bar.num)
+    })
+    obj.bar.num = 2
+    // 浅响应与深响应
+// const obj = reactive({ foo: { bar: 1 } })
+// const shallowObj = shallowReactive({ foo: { bar: 1 } })
+// effect(() => {
+//     // console.log(obj.foo.bar)
+//     console.log(shallowObj.foo.bar)
+// })
+// // obj.foo.bar++
+// shallowObj.foo.bar++
 </script>
