@@ -52,7 +52,9 @@ function createReactive(obj, isShallow = false, isReadonly = false) {
             }
             const oldVal = target[key]
             // 如果属性不存在则说明在添加属性，否则是设置已有的属性
-            const type = Object.prototype.hasOwnProperty.call(target, key) ? 'SET' : 'ADD'
+            const type = Array.isArray(target)
+            ? Number(key) < target.length ? 'SET' : 'ADD'
+            : Object.prototype.hasOwnProperty.call(target, key) ? 'SET' : 'ADD'
             // 设置属性值
             const res = Reflect.set(target, key, newValue, receiver)
             // target === receiver.raw 说明 receiver 就是 target 的代理对象
@@ -121,6 +123,14 @@ function trigger(target, key, type) {
             effectToRun.add(fn)
         }
     })
+    if (type === 'ADD' && Array.isArray(target)) {
+        const lengthEffects = depsMap.get('length')
+        lengthEffects && lengthEffects.forEach(effectFn => {
+            if (effectFn !== activeEffect) {
+                effectToRun.add(effectFn)
+            }
+        })
+    }
     // 只有当 type 是 ADD 时才触发 ITERATE_KEY 相关的副作用函数
     if (type === 'ADD' || type === 'DELETE') {
         // 将与 ITERATE_KEY 相关的副作用函数也添加到 effectToRun，处理 for in 相关

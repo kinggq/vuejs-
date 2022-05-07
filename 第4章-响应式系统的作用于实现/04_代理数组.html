@@ -1,0 +1,11 @@
+<script src="../packages/reactive.js"></script>
+<script>
+const obj = reactive([1])
+
+effect(() => {
+    console.log(obj.length)
+})
+
+obj[1] = 2
+
+</script>
