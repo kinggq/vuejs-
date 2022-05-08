@@ -3,9 +3,27 @@
 let activeEffect
 const bucked = new WeakMap()
 const ITERATE_KEY = Symbol()
+const reactiveMap = new Map()
+const arrayInstrumentations = {};
+;['includes', 'indexOf', 'lastIndexOf'].forEach(method => {
+    const originMethod = Array.prototype[method]
+    arrayInstrumentations[method] = function (...args) {
+        let res = originMethod.apply(this, args)
+        if (res === false) {
+            res = originMethod.apply(this.raw, args)
+        }
+        // 返回最终结果
+        return res
+    }
+})
 // 深响应
 function reactive(obj) {
-    return createReactive(obj)
+    const existionProxy = reactiveMap.get(obj)
+    if (existionProxy) return existionProxy
+
+    const proxy = createReactive(obj)
+    reactiveMap.set(obj, proxy)
+    return proxy
 }
 // 浅响应
 function shallowReactive(obj) {
@@ -28,10 +46,14 @@ function createReactive(obj, isShallow = false, isReadonly = false) {
                 return target
             }
             // 非只读的时候才需要建立相应联系
-            if (!isReadonly) {
+            // 如果 key 的类型是 symbol 则不进行追踪 数组 for of 遍历相关兼容
+            if (!isReadonly && typeof key !== 'symbol') {
                 track(target, key)
             }
             
+            if (Array.isArray(target) && arrayInstrumentations.hasOwnProperty(key)) {
+                return Reflect.get(arrayInstrumentations, key, receiver)
+            }
             // 得到原始值结果
             const res = Reflect.get(target, key, receiver)
             
@@ -89,7 +111,8 @@ function createReactive(obj, isShallow = false, isReadonly = false) {
         },
         // 拦截 for in
         ownKeys(target) {
-            track(target, ITERATE_KEY)
+            // 如果 target 是数组则处理 for in 遍历的数组，使用 length 作为 key 简历联系
+            track(target, Array.isArray(target) ? 'length' : ITERATE_KEY)
             return Reflect.ownKeys(target)
         }
     })
@@ -137,7 +160,7 @@ function trigger(target, key, type, newVal) {
             }
         })
     }
-    
+    // 当操作类型为 ADD 并且目标对象为数组时，取出与 length 属性相关联的副作用函数
     if (type === 'ADD' && Array.isArray(target)) {
         const lengthEffects = depsMap.get('length')
         lengthEffects && lengthEffects.forEach(effectFn => {

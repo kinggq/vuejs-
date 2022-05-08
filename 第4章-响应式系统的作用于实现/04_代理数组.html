@@ -1,11 +1,33 @@
 <script src="../packages/reactive.js"></script>
 <script>
-const obj = reactive([1])
+// 遍历数组
+const obj = {}
+const arr = reactive([obj])
+//const arr = reactive([1, 2, 3, 4, 5, 6])
 
 effect(() => {
-    console.log(obj[0])
+    console.log(arr.includes(obj))
 })
 
-obj.length = 0
+// arr[0] = 10
+// for in 方法
+/* effect(() => {
+    for (const key in arr) {
+        console.log(key)
+    }
+    console.log('effect函数执行')
+})
+
+arr.length = 0 */
+
+/* const obj = reactive([1])
+
+effect(() => {
+    // console.log(obj[0])
+    console.log(obj.length)
+})
+
+// obj.length = 0
+obj[1] = 2 */
 
 </script>
