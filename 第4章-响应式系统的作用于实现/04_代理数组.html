@@ -3,9 +3,9 @@
 const obj = reactive([1])
 
 effect(() => {
-    console.log(obj.length)
+    console.log(obj[0])
 })
 
-obj[1] = 2
+obj.length = 0
 
 </script>

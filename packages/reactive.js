@@ -62,7 +62,7 @@ function createReactive(obj, isShallow = false, isReadonly = false) {
                 // 比较新值与旧值，只有当他们不全等，并且都不是 NaN 的时候才触发相应
                 if (oldVal !== newValue && (oldVal === oldVal || newValue === newValue)) {
                     // 将 type 作为第三个参数传给 trigger
-                    trigger(target, key, type)
+                    trigger(target, key, type, newValue)
                 }
             }
             return res
@@ -111,7 +111,7 @@ function track(target, key) {
     activeEffect.deps.push(deps)
 }
 
-function trigger(target, key, type) {
+function trigger(target, key, type, newVal) {
     const depsMap = bucked.get(target)
     if (!depsMap) return
     const effects = depsMap.get(key)
@@ -123,6 +123,21 @@ function trigger(target, key, type) {
             effectToRun.add(fn)
         }
     })
+    // 如果目标对象是数组，并且修改了 length 属性
+    if (Array.isArray(target) && key === 'length') {
+        depsMap.forEach((effects, key) => {
+            // 对于索引大于等于 新的 length 值的元素
+            // 需要把所有关联的副作用函数取出并添加到 effectToRun 中待执行
+            if (key >= newVal) {
+                effects.forEach(effectFn => {
+                    if (effectFn !== activeEffect) {
+                        effectToRun.add(effectFn)
+                    }
+                })
+            }
+        })
+    }
+    
     if (type === 'ADD' && Array.isArray(target)) {
         const lengthEffects = depsMap.get('length')
         lengthEffects && lengthEffects.forEach(effectFn => {
