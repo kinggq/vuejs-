@@ -1,14 +1,25 @@
 <script src="../packages/reactive.js"></script>
 <script>
+
+    const arr = reactive([])
+    
+    effect(() => {
+        arr.push(1)
+    })
+    // 第二个副作用函数 push 时会导致栈溢出
+    effect(() => {
+        arr.push(1)
+    })
+    
 // 遍历数组
-const obj = {}
+/* const obj = {}
 const arr = reactive([obj])
 //const arr = reactive([1, 2, 3, 4, 5, 6])
 
 effect(() => {
     console.log(arr.includes(obj))
 })
-
+ */
 // arr[0] = 10
 // for in 方法
 /* effect(() => {
