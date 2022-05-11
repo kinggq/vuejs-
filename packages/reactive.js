@@ -16,6 +16,16 @@ const arrayInstrumentations = {};
         return res
     }
 })
+let shouldTrack = true
+;['push', 'pop', 'shift', 'unshift', 'splice'].forEach(method => {
+    const originMethod = Array.prototype[method]
+    arrayInstrumentations[method] = function (...args) {
+        shouldTrack = false
+        let res = originMethod.apply(this, args)
+        shouldTrack = true
+        return res
+    }
+})
 // 深响应
 function reactive(obj) {
     const existionProxy = reactiveMap.get(obj)
@@ -119,6 +129,8 @@ function createReactive(obj, isShallow = false, isReadonly = false) {
 }
 
 function track(target, key) {
+    // 当禁止追踪时直接返回
+    if (!activeEffect || !shouldTrack) return
     // 没有 activeEffect 直接 return
     if (!activeEffect) return target[key]
     // 根据 target 从桶中获取 depsMap , 他是一个 map 类型: key --> effects
