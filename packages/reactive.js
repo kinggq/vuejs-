@@ -47,6 +47,50 @@ function readonly(obj) {
 function shallowReadonly(obj) {
     return createReactive(obj, true, true)
 }
+
+const mutableInstrumentations = {
+    add(key) {
+        const target = this.raw
+        const hadKey = target.has(key)
+        const res = target.add(key)
+        if (!hadKey) {
+            trigger(target, key, 'ADD')
+        }
+        return res
+    },
+    delete(key) {
+        const target = this.raw
+        const hadKey = target.has(key)
+        const res = target.delete(key)
+        if (hadKey) {
+            trigger(target, key, 'DELETE')
+        }
+        return res
+    },
+    get(key) {
+        const target = this.raw
+        const had = target.has(key)
+        track(target, key)
+        if (had) {
+            const res = target.get(key)
+            return  typeof res === 'object' ? reactive(res) : res
+        }
+    },
+    set(key, value) {
+        const target = this.raw
+        const had = target.has(key)
+        // 获取旧值
+        const oldValue = target.get(key)
+        // 设置新值
+        target.set(key, value)
+        // 如果不存在则说明 ADD 类型的操作
+        if (!had) {
+            trigger(target, key, 'ADD')
+        } else if (oldValue !== value || (oldValue === oldValue && value === value)) {
+            trigger(target, key, 'SET')
+        }
+    }
+}
 function createReactive(obj, isShallow = false, isReadonly = false) {
     return new Proxy(obj, {
         // 拦截读取操作
@@ -55,6 +99,13 @@ function createReactive(obj, isShallow = false, isReadonly = false) {
             if (key === 'raw') {
                 return target
             }
+            if (key === 'size') {
+                track(target, ITERATE_KEY)
+                return Reflect.get(target, key, target)
+            }
+            return mutableInstrumentations[key]
+            
+            
             // 非只读的时候才需要建立相应联系
             // 如果 key 的类型是 symbol 则不进行追踪 数组 for of 遍历相关兼容
             if (!isReadonly && typeof key !== 'symbol') {

@@ -1,0 +1,16 @@
+<script src="../packages/reactive.js"></script>
+<script>
+// const proxy = reactive(new Set([1, 2, 3]))
+// effect(() => {
+//     console.log(proxy.size)
+// })
+// proxy.add(4)
+
+const p1 = reactive(new Map([['key', 2]]))
+
+effect(() => {
+    console.log(p1.get('key'))
+})
+
+p1.set('key', 6)
+</script>
