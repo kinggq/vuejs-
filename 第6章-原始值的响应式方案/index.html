@@ -1,0 +1,10 @@
+<script src="../packages/reactive.js"></script>
+<script>
+const loading = ref(false)
+
+effect(() => {
+    console.log(loading.value)
+})
+
+loading.value = true
+</script>

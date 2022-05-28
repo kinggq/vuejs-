@@ -5,6 +5,15 @@ const bucked = new WeakMap()
 const ITERATE_KEY = Symbol()
 const reactiveMap = new Map()
 const arrayInstrumentations = {};
+
+// ref
+function ref(val) {
+    const wrapper = {
+        value: val
+    }
+    return reactive(wrapper)
+}
+
 ;['includes', 'indexOf', 'lastIndexOf'].forEach(method => {
     const originMethod = Array.prototype[method]
     arrayInstrumentations[method] = function (...args) {
@@ -71,6 +80,7 @@ const mutableInstrumentations = {
         const target = this.raw
         const had = target.has(key)
         track(target, key)
+        console.log('first')
         if (had) {
             const res = target.get(key)
             return  typeof res === 'object' ? reactive(res) : res
@@ -81,8 +91,9 @@ const mutableInstrumentations = {
         const had = target.has(key)
         // 获取旧值
         const oldValue = target.get(key)
+        const rawValue = value.raw || value
         // 设置新值
-        target.set(key, value)
+        target.set(key, rawValue)
         // 如果不存在则说明 ADD 类型的操作
         if (!had) {
             trigger(target, key, 'ADD')
@@ -99,11 +110,12 @@ function createReactive(obj, isShallow = false, isReadonly = false) {
             if (key === 'raw') {
                 return target
             }
-            if (key === 'size') {
-                track(target, ITERATE_KEY)
-                return Reflect.get(target, key, target)
-            }
-            return mutableInstrumentations[key]
+            // if (key === 'size') {
+            //     track(target, ITERATE_KEY)
+            //     return Reflect.get(target, key, target)
+            // }
+            // console.log(key)
+            // return mutableInstrumentations[key]
             
             
             // 非只读的时候才需要建立相应联系

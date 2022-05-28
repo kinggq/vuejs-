@@ -6,11 +6,19 @@
 // })
 // proxy.add(4)
 
-const p1 = reactive(new Map([['key', 2]]))
+// const p1 = reactive(new Map([['key', 2]]))
+
+// effect(() => {
+//     console.log(p1.get('key'))
+// })
+
+// p1.set('key', 6)
+
+const obj1 = reactive({ a: 2 })
 
 effect(() => {
-    console.log(p1.get('key'))
+    console.log(obj1.a)
 })
 
-p1.set('key', 6)
+obj1.a = 6
 </script>
