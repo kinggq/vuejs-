@@ -1,10 +1,30 @@
 <script src="../packages/reactive.js"></script>
 <script>
-const loading = ref(false)
+// const loading = ref(false)
+// console.log(loading)
+// effect(() => {
+//     console.log(loading.value)
+// })
 
+// loading.value = true
+
+const obj = reactive({ foo: 1, bar: 2 })
+
+// const newObj = { foo: toRef(obj, 'foo') }
+const newObj = { ...toRefs(obj) }
 effect(() => {
-    console.log(loading.value)
+    console.log(newObj.foo.value)
 })
 
-loading.value = true
+newObj.foo.value++
+// obj.foo = 2
+
+// 自动脱 ref
+// get
+const pr = proxyRefs({...toRefs(obj)})
+console.log('first', pr.foo)
+
+// set
+pr.foo++
+
 </script>
