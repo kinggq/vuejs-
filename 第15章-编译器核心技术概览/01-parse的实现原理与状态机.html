@@ -146,29 +146,51 @@ function parse(str) {
 const ast = parse('<div><p>Vue</p><p>Template</p></div>')
 // console.log(ast)
 
-function traverseNode(ast) {
+function traverseNode(ast, context) {
     const currentNode = ast
+    // debugger
+    const transforms = context.nodeTransforms
 
-    if (currentNode.type === 'Element' && currentNode.tag === 'p') {
-        currentNode.tag = 'h1'
+    for (let i = 0; i < transforms.length; i++) {
+        transforms[i](currentNode)
     }
-
+    // if (currentNode.type === 'Element' && currentNode.tag === 'p') {
+    //     currentNode.tag = 'h1'
+    // }
     const children = currentNode.children
 
     if (children) {
         for (let i = 0; i < children.length; i++) {
-            traverseNode(children[i])
+            traverseNode(children[i], context)
         }
     }
 }
 
 // 封装 transform 函数，用来对 AST 进行转换
 function transform(ast) {
-    traverseNode(ast)
+    const context = {
+        nodeTransforms: [
+            transformElement,
+            transformText
+        ]
+    }
+    traverseNode(ast, context)
     dump(ast)
 }
 
 transform(ast)
+
+function transformElement(node) {
+    if (node.type === 'Element' && node.tag === 'p') {
+        node.tag = 'h1'
+    }
+}
+
+function transformText(node) {
+    if (node.type === 'Text') {
+        node.content = node.content.repeat(2)
+    }
+}
 
 // 打印 AST 节点信息
 function dump(node, indent = 0) {
