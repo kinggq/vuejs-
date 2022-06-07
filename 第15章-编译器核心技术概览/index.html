@@ -1,0 +1,87 @@
+<script>
+
+
+    // function createWs() {
+    //     return new Promise((resolve, reject) => {
+    //         const ws = new WebSocket(
+    //             // `ws://im.51db.com:38201/im-end-web/ws/v1/zhangbin`,
+    //             `ws://im.51db.com:38201/im-end-web/ws/v1/upload/zhangbin/sujiali/aa/2`,
+    //             "Authorization'4f52f26643d647b9b6a4e94c1147f9c2"
+    //         )
+
+    //         ws.onopen = () => {
+    //             console.log('开启 ws...')
+    //             resolve(ws)
+    //         }
+
+    //         ws.onmessage = event => {
+    //             console.log('收到消息：', event)
+    //         }
+
+    //         ws.onclose = () => {
+    //             console.log('ws 关闭')
+    //         }
+
+    //         ws.onerror = () => {
+    //             console.log('错误')
+    //         }
+    //     })
+    // }
+
+    // createWs().then(res => {
+    //     console.log('res:', res)
+    //     res.send(JSON.stringify({
+    //         content: 'hello',
+    //         fromUserAccount: 'zhangbin',
+    //         toUserAccount: 'zhangbin',
+    //         fromUserRealName: '张斌',
+    //         type: 3,
+    //     }))
+    // })
+
+    class createWebsocket {
+        ws = null
+        onmessageCb = null
+
+        constructor(onmessageCb) {
+            this.ws = new WebSocket(
+                // `ws://im.51db.com:38201/im-end-web/ws/v1/zhangbin`,
+                `ws://im.51db.com:38201/im-end-web/ws/v1/upload/zhangbin/sujiali/aa/2`,
+                "Authorization'4f52f26643d647b9b6a4e94c1147f9c2"
+            )
+            this.onmessageCb = onmessageCb
+
+            this.ws.onopen = this.onopen
+            
+            this.ws.onmessage = this.onmessage
+
+            this.ws.onclose = this.onclose
+
+            this.ws.onerror = this.onerror
+        }
+
+        onmessage(event) {
+            onmessageCb(event.data)
+        }
+
+        onopen() {
+            console.log('ws开启链接')
+        }
+
+        onclose() {
+            console.log('ws关闭')
+        }
+
+        onerror() {
+            console.log('错误')
+        }
+    }
+
+    const initWs = new createWebsocket(onmessageCb)
+
+    console.log(initWs)
+
+    function onmessageCb(data) {
+        console.log('回调 data: ', data)
+    }
+</script>
